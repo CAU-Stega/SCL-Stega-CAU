@@ -66,9 +66,13 @@ def train(epoch, train_loader, model_main, loss_function, optimizer, lr_schedule
 
         if log.param.loss_type == "scl":
             loss = (loss_function["lambda_loss"]*loss_function["label"](pred, label)) + ((1-loss_function["lambda_loss"]) * loss_function["contrastive"](supcon_feature, label))
+        # elif log.param.loss_type == "lcl":
+        #     loss = (loss_function["lambda_loss"]*loss_function["label"](pred, label)) + ((1-loss_function["lambda_loss"]) * loss_function["contrastive"](supcon_feature, label, pred))
         else:
             loss = loss_function["label"](pred, label)
 
+        # loss_2 = loss_function["lambda_loss"] * loss_function["label"](pred, label)
+        # loss = loss + loss_2
         train_loss += loss.item()
 
         loss.backward()
@@ -164,6 +168,8 @@ def stega_train(log):
 
     if log.param.loss_type == "scl":
         losses = {"contrastive": loss.SupConLoss(temperature=log.param.temperature), "label": nn.CrossEntropyLoss(), "lambda_loss": log.param.lambda_loss}
+    elif log.param.loss_type == "lcl":
+        losses = {"contrastive": loss.LCL(temperature=log.param.temperature), "label": nn.CrossEntropyLoss(), "lambda_loss": log.param.lambda_loss}
     else:
         losses = {"label": nn.CrossEntropyLoss(), "lambda_loss": log.param.lambda_loss, "contrastive": loss.SupConLoss(temperature=log.param.temperature)}
 
